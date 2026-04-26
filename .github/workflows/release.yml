@@ -28,18 +28,33 @@ jobs:
             mingw-w64-x86_64-zlib
             git
 
-      # libtcod is not reliably available as an MSYS2 package, so build from source
+      # Cache the cloned source + cmake build directory so subsequent runs skip
+      # the slow compile step when the libtcod version and toolchain haven't changed.
+      - name: Cache libtcod build
+        id: cache-libtcod
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/msys64/tmp/libtcod
+          key: libtcod-2.2.2-${{ runner.os }}-mingw64-static
+          restore-keys: |
+            libtcod-2.2.2-${{ runner.os }}-mingw64-
+
+      # libtcod is not reliably available as an MSYS2 package, so build from source.
+      # On a cache hit the clone and compile are skipped; cmake --install is always
+      # run because it is fast and ensures the headers/libs land in /mingw64.
       - name: Build and install libtcod
         shell: msys2 {0}
         run: |
           set -euxo pipefail
-          git clone --depth 1 --branch 2.2.2 https://github.com/libtcod/libtcod.git /tmp/libtcod
-          cmake -S /tmp/libtcod -B /tmp/libtcod/build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DLIBTCOD_SDL3=find \
-            -DBUILD_SHARED_LIBS=OFF \
-            -DCMAKE_INSTALL_PREFIX=/mingw64
-          cmake --build /tmp/libtcod/build --parallel
+          if [ "${{ steps.cache-libtcod.outputs.cache-hit }}" != "true" ]; then
+            git clone --depth 1 --branch 2.2.2 https://github.com/libtcod/libtcod.git /tmp/libtcod
+            cmake -S /tmp/libtcod -B /tmp/libtcod/build -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DLIBTCOD_SDL3=find \
+              -DBUILD_SHARED_LIBS=OFF \
+              -DCMAKE_INSTALL_PREFIX=/mingw64
+            cmake --build /tmp/libtcod/build --parallel
+          fi
           cmake --install /tmp/libtcod/build
 
       - name: Build roguelike.exe
@@ -50,6 +65,7 @@ jobs:
             -o roguelike.exe \
             -I/mingw64/include \
             -L/mingw64/lib \
+            -DLIBTCOD_STATIC \
             -ltcod -lSDL3 -lz \
             -mwindows
 
@@ -118,6 +134,7 @@ jobs:
             -o roguelike \
             -I/usr/local/include \
             -L/usr/local/lib \
+            -DLIBTCOD_STATIC \
             -ltcod -lSDL3 -lutf8proc -llodepng-c -lz
 
       - name: Package Linux release
