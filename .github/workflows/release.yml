@@ -86,30 +86,29 @@ jobs:
           set -euxo pipefail
 
           sudo apt-get update
-          sudo apt-get install -y ca-certificates curl gnupg lsb-release
-
-          # SDL3 is not in Ubuntu's default repos — add the official SDL apt repo
-          sudo install -m 0755 -d /etc/apt/keyrings
-          curl -fsSL https://packages.libsdl.org/debian/pubkey.gpg \
-            | sudo gpg --dearmor -o /etc/apt/keyrings/libsdl.gpg
-          echo "deb [signed-by=/etc/apt/keyrings/libsdl.gpg] https://packages.libsdl.org/debian $(lsb_release -cs) main" \
-            | sudo tee /etc/apt/sources.list.d/libsdl.list > /dev/null
-
-          sudo apt-get update
           sudo apt-get install -y \
-            g++ cmake pkg-config \
-            libsdl3-dev \
-            zlib1g-dev \
-            libglu1-mesa-dev
+            ca-certificates curl gnupg \
+            g++ cmake pkg-config ninja-build \
+            zlib1g-dev libglu1-mesa-dev
 
-          # Install libtcod from source (no apt package available)
+          # Build SDL3 from source — avoids relying on packages.libsdl.org being reachable
+          git clone --depth 1 --branch release-3.2.10 https://github.com/libsdl-org/SDL.git /tmp/SDL
+          cmake -S /tmp/SDL -B /tmp/SDL/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/usr/local
+          cmake --build /tmp/SDL/build --parallel
+          sudo cmake --install /tmp/SDL/build
+          sudo ldconfig
+
+          # Build libtcod from source (no apt package available)
           git clone --depth 1 --branch 2.2.2 https://github.com/libtcod/libtcod.git /tmp/libtcod
-          cmake -S /tmp/libtcod -B /tmp/libtcod/build \
+          cmake -S /tmp/libtcod -B /tmp/libtcod/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DLIBTCOD_SDL3=find \
             -DCMAKE_INSTALL_PREFIX=/usr/local
           cmake --build /tmp/libtcod/build --parallel
           sudo cmake --install /tmp/libtcod/build
+          sudo ldconfig
 
       - name: Build roguelike (Linux)
         run: |
