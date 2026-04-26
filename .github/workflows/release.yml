@@ -37,6 +37,7 @@ jobs:
           cmake -S /tmp/libtcod -B /tmp/libtcod/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DLIBTCOD_SDL3=find \
+            -DBUILD_SHARED_LIBS=OFF \
             -DCMAKE_INSTALL_PREFIX=/mingw64
           cmake --build /tmp/libtcod/build --parallel
           cmake --install /tmp/libtcod/build
