@@ -2,8 +2,8 @@
 #include <libtcod.hpp>
 
 struct Tile {
-    bool canWalk; // Can actors walk on this tile?
-    Tile() : canWalk(false) {}
+    bool explored; // has the player seen this tile before?
+    Tile() : explored(false) {}
 };
 
 class Map {
@@ -14,9 +14,13 @@ class Map {
         ~Map();
         bool isWall(int x, int y) const;
         // console is the tile buffer passed down from Engine::render()
+        bool isInFov(int x, int y) const;
+        bool isExplored(int x, int y) const;
+        void computeFov();
         void render(tcod::Console& console) const;
     protected :
         Tile *tiles;
+        TCODMap *map;
         friend class BspListener;
 
         void dig(int x1, int y1, int x2, int y2);

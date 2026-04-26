@@ -60,6 +60,7 @@ jobs:
             -o roguelike.exe \
             -I/opt/prebuilt/include -I/mingw64/include \
             -L/opt/prebuilt/lib -L/mingw64/lib \
+            -DLIBTCOD_STATIC \
             -ltcod -lSDL3 -lz \
             -mwindows
 
@@ -160,6 +161,7 @@ jobs:
             -o roguelike \
             -I/opt/prebuilt/sdl3/include -I/opt/prebuilt/libtcod/include \
             -L/opt/prebuilt/sdl3/lib -L/opt/prebuilt/libtcod/lib \
+            -DLIBTCOD_STATIC \
             -ltcod -lSDL3 -lutf8proc -llodepng-c -lz
 
       - name: Package Linux release

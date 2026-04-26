@@ -13,6 +13,8 @@ public:
     Actor* player;
     Map* map;
 
+    int fovRadius;
+
     Engine();
     ~Engine();
     // Receives an SDL_Scancode from the event loop in main.cpp instead of
@@ -24,6 +26,7 @@ private:
     std::unique_ptr<tcod::Context> context_;
     // tcod::Console is the off-screen tile buffer we draw into each frame
     std::unique_ptr<tcod::Console> console_;
+    bool computeFov;
 };
 
 extern Engine engine;

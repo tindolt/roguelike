@@ -3,7 +3,7 @@
 #include "Actor.h"
 #include "Map.h"
 
-Engine::Engine() {
+Engine::Engine() : fovRadius(10), computeFov(true) {
     auto tileset = tcod::load_tilesheet("data/fonts/terminal.png", {16, 16}, tcod::CHARMAP_CP437);
     // Configure the window and renderer via TCOD_ContextParams
     // This replaces the old TCODConsole::initRoot()
@@ -38,17 +38,25 @@ void Engine::update(SDL_Scancode key) {
     switch(key) {
         case SDL_SCANCODE_UP:
             if (!map->isWall(player->x, player->y - 1)) player->y--;
+            computeFov = true;
             break;
         case SDL_SCANCODE_DOWN:
             if (!map->isWall(player->x, player->y + 1)) player->y++;
+            computeFov = true;
             break;
         case SDL_SCANCODE_LEFT:
             if (!map->isWall(player->x - 1, player->y)) player->x--;
+            computeFov = true;
             break;
         case SDL_SCANCODE_RIGHT:
             if (!map->isWall(player->x + 1, player->y)) player->x++;
+            computeFov = true;
             break;
         default: break;
+    }
+    if( computeFov ) {
+        map->computeFov();
+        computeFov = false;
     }
 }
 
@@ -61,7 +69,9 @@ void Engine::render() {
 
     // Draw all actors (sets each tile's character and foreground color)
     for (Actor* actor : actors) {
-        actor->render(*console_);
+        if( map->isInFov(actor->x, actor->y) ) {
+            actor->render(*console_);
+        }
     }
 
     // Present the finished console to the screen
