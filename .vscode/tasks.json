@@ -48,13 +48,12 @@
                 "${workspaceFolder}/src/Map.cpp",
                 "-o",
                 "${workspaceFolder}/roguelike.exe",
-                // Windows libtcod headers (platform-neutral, reuse the Linux ones)
-                "-I/usr/local/include",
-                // Windows .dll.a import libs in ${workspaceFolder}/lib/
+                // Headers from setup-windows-deps.sh (SDL3 + libtcod for Windows)
+                "-I${workspaceFolder}/.windows-include",
+                // Static libtcod + SDL3 import lib built by setup-windows-deps.sh
                 "-L${workspaceFolder}/lib",
                 "-ltcod",
                 "-lSDL3",
-                "-lutf8proc",
                 "-lz",
                 // Required on Windows MinGW builds
                 "-lmingw32",
@@ -67,7 +66,7 @@
                 "$gcc"
             ],
             "group": "build",
-            "detail": "Cross-compile for Windows using MinGW. Requires Windows .a libs in lib/"
+            "detail": "Cross-compile for Windows using MinGW. Run setup-windows-deps.sh first."
         }
     ],
     "version": "2.0.0"
