@@ -29,7 +29,17 @@ jobs:
             git
 
       # libtcod is not reliably available as an MSYS2 package, so build from source
+      - name: Cache libtcod (Windows)
+        id: cache-libtcod-windows
+        uses: actions/cache@v4
+        with:
+          path: C:\msys64\opt\prebuilt
+          key: windows-libtcod-2.2.2
+          restore-keys: |
+            windows-libtcod-
+
       - name: Build and install libtcod
+        if: steps.cache-libtcod-windows.outputs.cache-hit != 'true'
         shell: msys2 {0}
         run: |
           set -euxo pipefail
@@ -38,7 +48,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DLIBTCOD_SDL3=find \
             -DBUILD_SHARED_LIBS=OFF \
-            -DCMAKE_INSTALL_PREFIX=/mingw64
+            -DCMAKE_INSTALL_PREFIX=/opt/prebuilt
           cmake --build /tmp/libtcod/build --parallel
           cmake --install /tmp/libtcod/build
 
@@ -48,8 +58,8 @@ jobs:
           g++ -std=c++17 \
             src/main.cpp src/Engine.cpp src/Actor.cpp src/Map.cpp \
             -o roguelike.exe \
-            -I/mingw64/include \
-            -L/mingw64/lib \
+            -I/opt/prebuilt/include -I/mingw64/include \
+            -L/opt/prebuilt/lib -L/mingw64/lib \
             -ltcod -lSDL3 -lz \
             -mwindows
 
@@ -82,33 +92,65 @@ jobs:
 
       # libtcod isn't in Ubuntu's default apt repos, so we build from the
       # vcpkg package manager which has it. Alternatively, install from source.
-      - name: Install dependencies
+      - name: Install apt dependencies
         run: |
-          set -euxo pipefail
-
           sudo apt-get update
           sudo apt-get install -y \
             ca-certificates curl gnupg \
             g++ cmake pkg-config ninja-build \
-            zlib1g-dev libglu1-mesa-dev
+            zlib1g-dev libglu1-mesa-dev \
+            libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxinerama-dev \
+            libwayland-dev libxkbcommon-dev wayland-protocols libdbus-1-dev
 
-          # Build SDL3 from source — avoids relying on packages.libsdl.org being reachable
+      - name: Create prebuilt install directories
+        run: |
+          sudo mkdir -p /opt/prebuilt/sdl3 /opt/prebuilt/libtcod
+          sudo chown -R "$USER" /opt/prebuilt
+
+      # Build SDL3 from source — avoids relying on packages.libsdl.org being reachable
+      - name: Cache SDL3 (Linux)
+        id: cache-sdl3
+        uses: actions/cache@v4
+        with:
+          path: /opt/prebuilt/sdl3
+          key: linux-sdl3-release-3.2.10
+          restore-keys: |
+            linux-sdl3-
+
+      - name: Build and install SDL3
+        if: steps.cache-sdl3.outputs.cache-hit != 'true'
+        run: |
+          set -euxo pipefail
           git clone --depth 1 --branch release-3.2.10 https://github.com/libsdl-org/SDL.git /tmp/SDL
           cmake -S /tmp/SDL -B /tmp/SDL/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX=/usr/local
+            -DCMAKE_INSTALL_PREFIX=/opt/prebuilt/sdl3
           cmake --build /tmp/SDL/build --parallel
-          sudo cmake --install /tmp/SDL/build
+          cmake --install /tmp/SDL/build
           sudo ldconfig
 
-          # Build libtcod from source (no apt package available)
+      # Build libtcod from source (no apt package available)
+      - name: Cache libtcod (Linux)
+        id: cache-libtcod
+        uses: actions/cache@v4
+        with:
+          path: /opt/prebuilt/libtcod
+          key: linux-libtcod-2.2.2
+          restore-keys: |
+            linux-libtcod-
+
+      - name: Build and install libtcod
+        if: steps.cache-libtcod.outputs.cache-hit != 'true'
+        run: |
+          set -euxo pipefail
           git clone --depth 1 --branch 2.2.2 https://github.com/libtcod/libtcod.git /tmp/libtcod
           cmake -S /tmp/libtcod -B /tmp/libtcod/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DLIBTCOD_SDL3=find \
-            -DCMAKE_INSTALL_PREFIX=/usr/local
+            -DSDL3_DIR=/opt/prebuilt/sdl3/lib/cmake/SDL3 \
+            -DCMAKE_INSTALL_PREFIX=/opt/prebuilt/libtcod
           cmake --build /tmp/libtcod/build --parallel
-          sudo cmake --install /tmp/libtcod/build
+          cmake --install /tmp/libtcod/build
           sudo ldconfig
 
       - name: Build roguelike (Linux)
@@ -116,8 +158,8 @@ jobs:
           g++ -std=c++17 \
             src/main.cpp src/Engine.cpp src/Actor.cpp src/Map.cpp \
             -o roguelike \
-            -I/usr/local/include \
-            -L/usr/local/lib \
+            -I/opt/prebuilt/sdl3/include -I/opt/prebuilt/libtcod/include \
+            -L/opt/prebuilt/sdl3/lib -L/opt/prebuilt/libtcod/lib \
             -ltcod -lSDL3 -lutf8proc -llodepng-c -lz
 
       - name: Package Linux release
