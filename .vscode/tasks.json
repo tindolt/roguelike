@@ -14,7 +14,7 @@
                 "${workspaceFolder}/src/Map.cpp",
                 "-o",
                 "${workspaceFolder}/roguelike",
-                "-I/usr/local/include",
+                "-isystem", "/usr/local/include",
                 "-L/usr/local/lib",
                 "-ltcod",
                 "-lSDL3",
@@ -51,7 +51,7 @@
                 "-o",
                 "${workspaceFolder}/roguelike.exe",
                 // Headers from setup-windows-deps.sh (SDL3 + libtcod for Windows)
-                "-I${workspaceFolder}/.windows-include",
+                "-isystem", "${workspaceFolder}/.windows-include",
                 // Static libtcod + SDL3 import lib built by setup-windows-deps.sh
                 "-L${workspaceFolder}/lib",
                 "-ltcod",
