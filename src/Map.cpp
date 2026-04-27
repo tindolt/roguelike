@@ -117,14 +117,14 @@ void Map::render(tcod::Console& console) const {
     // TCOD_ColorRGBA {r, g, b, a} replaces TCODColor for direct tile access
     static const TCOD_ColorRGBA darkWall{0, 0, 100, 255};
     static const TCOD_ColorRGBA darkGround{50, 50, 150, 255};
+    static const TCOD_ColorRGBA lightWall{130, 110, 50, 255};
+    static const TCOD_ColorRGBA lightGround{200, 180, 50, 255};
     for (int x = 0; x < width; x++) {
         for (int y = 0; y < height; y++) {
             if( isInFov(x, y) ) {
-                // Optionally set the foreground color for visible tiles
-                console.at(x, y).bg = {130, 110, 50, 255}; // white for visible tiles
+                console.at(x, y).bg = isWall(x, y) ? lightWall : lightGround;
             } else if (isExplored(x, y)) {
-                // Dim the colors for explored but not currently visible tiles
-                console.at(x, y).bg = {200, 180, 50, 255}; // gray for explored tiles
+                console.at(x, y).bg = isWall(x, y) ? darkWall : darkGround;
             }
         }
     }

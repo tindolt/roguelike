@@ -42,6 +42,8 @@
                 "-fdiagnostics-color=always",
                 "-g",
                 "-std=c++17",
+                // Required: tell libtcod headers we're linking a static archive (no dllimport)
+                "-DLIBTCOD_STATIC",
                 "${workspaceFolder}/src/main.cpp",
                 "${workspaceFolder}/src/Engine.cpp",
                 "${workspaceFolder}/src/Actor.cpp",
@@ -53,6 +55,7 @@
                 // Static libtcod + SDL3 import lib built by setup-windows-deps.sh
                 "-L${workspaceFolder}/lib",
                 "-ltcod",
+                "-llodepng-c",
                 "-lSDL3",
                 "-lz",
                 // Required on Windows MinGW builds

@@ -63,6 +63,8 @@ if [[ ! -d "$LIBTCOD_SRC" ]]; then
 fi
 
 echo "==> Configuring libtcod for Windows (static)..."
+# Always start with a clean build dir to avoid stale FetchContent patch state
+rm -rf "$LIBTCOD_BUILD"
 cmake -S "$LIBTCOD_SRC" -B "$LIBTCOD_BUILD" \
     -G Ninja \
     -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN" \
