@@ -11,7 +11,7 @@ Engine::Engine() : fovRadius(10), computeFov(true) {
     params.tileset = tileset.get();
     params.columns = 80;
     params.rows = 50;
-    params.window_title = "Roguelike Game";
+    params.window_title = "Tollmark";
     params.renderer_type = TCOD_RENDERER_SDL2;
     params.vsync = true;
     context_ = std::make_unique<tcod::Context>(params);
@@ -77,4 +77,6 @@ void Engine::render() {
     // Present the finished console to the screen
     // This replaces the old TCODConsole::flush()
     context_->present(*console_);
+    map->computeFov(); // Recompute FOV after rendering to update explored tiles
+    computeFov = false; // Reset FOV computation flag until next movement
 }

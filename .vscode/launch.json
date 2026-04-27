@@ -2,17 +2,17 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Run roguelike",
+            "name": "Run Tollmark",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/roguelike",
+            "program": "${workspaceFolder}/Tollmark",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "preLaunchTask": "C/C++: g++ build roguelike",
+            "preLaunchTask": "C/C++: g++ build Tollmark",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",

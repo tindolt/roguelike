@@ -2,7 +2,7 @@
     "tasks": [
         {
             "type": "cppbuild",
-            "label": "C/C++: g++ build roguelike",
+            "label": "C/C++: g++ build Tollmark",
             "command": "/usr/bin/g++",
             "args": [
                 "-fdiagnostics-color=always",
@@ -13,7 +13,7 @@
                 "${workspaceFolder}/src/Actor.cpp",
                 "${workspaceFolder}/src/Map.cpp",
                 "-o",
-                "${workspaceFolder}/roguelike",
+                "${workspaceFolder}/Tollmark",
                 "-isystem", "/usr/local/include",
                 "-L/usr/local/lib",
                 "-ltcod",
@@ -49,7 +49,7 @@
                 "${workspaceFolder}/src/Actor.cpp",
                 "${workspaceFolder}/src/Map.cpp",
                 "-o",
-                "${workspaceFolder}/roguelike.exe",
+                "${workspaceFolder}/Tollmark.exe",
                 // Headers from setup-windows-deps.sh (SDL3 + libtcod for Windows)
                 "-isystem", "${workspaceFolder}/.windows-include",
                 // Static libtcod + SDL3 import lib built by setup-windows-deps.sh
