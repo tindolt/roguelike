@@ -3,7 +3,7 @@
 #include "Actor.h"
 #include "Map.h"
 
-Engine::Engine() : fovRadius(10), computeFov(true) {
+Engine::Engine() : gameStatus(STARTUP), fovRadius(10) {
     auto tileset = tcod::load_tilesheet("data/fonts/terminal.png", {16, 16}, tcod::CHARMAP_CP437);
     // Configure the window and renderer via TCOD_ContextParams
     // This replaces the old TCODConsole::initRoot()
@@ -19,7 +19,7 @@ Engine::Engine() : fovRadius(10), computeFov(true) {
     // The console is the off-screen tile buffer (width x height in tiles)
     console_ = std::make_unique<tcod::Console>(80, 50);
 
-    player = new Actor(40, 25, '@', tcod::ColorRGB(255, 255, 255));
+    player = new Actor(40, 25, '@', "player", tcod::ColorRGB(255, 255, 255));
     actors.push_back(player);
     map = new Map(80, 45);
 }
@@ -34,29 +34,33 @@ Engine::~Engine() {
 
 // key is the SDL_Scancode forwarded from the event loop in main.cpp
 void Engine::update(SDL_Scancode key) {
+    int dx = 0, dy = 0;
     // SDL_SCANCODE values replace the deprecated TCODK_ constants
     switch(key) {
-        case SDL_SCANCODE_UP:
-            if (!map->isWall(player->x, player->y - 1)) player->y--;
-            computeFov = true;
-            break;
-        case SDL_SCANCODE_DOWN:
-            if (!map->isWall(player->x, player->y + 1)) player->y++;
-            computeFov = true;
-            break;
-        case SDL_SCANCODE_LEFT:
-            if (!map->isWall(player->x - 1, player->y)) player->x--;
-            computeFov = true;
-            break;
-        case SDL_SCANCODE_RIGHT:
-            if (!map->isWall(player->x + 1, player->y)) player->x++;
-            computeFov = true;
-            break;
+        case SDL_SCANCODE_UP:    dy = -1; break;
+        case SDL_SCANCODE_DOWN:  dy =  1; break;
+        case SDL_SCANCODE_LEFT:  dx = -1; break;
+        case SDL_SCANCODE_RIGHT: dx =  1; break;
         default: break;
     }
-    if( computeFov ) {
+    if( gameStatus == STARTUP ) {
         map->computeFov();
-        computeFov = false;
+        gameStatus = IDLE;
+    }
+
+    if (dx != 0 || dy != 0) {
+        gameStatus = NEW_TURN;
+        if ( player->moveOrAttack(player->x + dx, player->y + dy) ) {
+            map->computeFov();
+        }
+    }
+
+    if ( gameStatus == NEW_TURN ) {
+        for (Actor* actor : actors) {
+            if (actor != player) {
+                actor->update();
+            }
+        }
     }
 }
 

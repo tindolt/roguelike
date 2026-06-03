@@ -5,6 +5,7 @@
 
 static const int ROOM_MAX_SIZE = 12;
 static const int ROOM_MIN_SIZE = 6;
+static const int MAX_ROOM_MONSTERS = 3;
 
 class BspListener : public ITCODBspCallback {
 public:
@@ -63,6 +64,20 @@ bool Map::isWall(int x, int y) const {
     return !map->isWalkable(x, y);
 }
 
+bool Map::canWalk(int x, int y) const {
+    if (isWall(x, y)) {
+        return false;
+    }
+    for (auto iterator = engine.actors.begin();
+        iterator != engine.actors.end(); iterator++) {
+        Actor *actor = *iterator;
+        if (actor->x == x && actor->y == y) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool Map::isExplored(int x, int y) const {
     return tiles[x + y * width].explored;
 }
@@ -106,10 +121,26 @@ void Map::createRoom(bool first, int x1, int y1, int x2, int y2) {
         engine.player->y = (y1 + y2) / 2;
     } else {
         TCODRandom *rng = TCODRandom::getInstance();
-        if (rng->getInt(0, 3) == 0) {
-            // 25% chance to place a monster in this room
-            engine.actors.push_back(new Actor((x1 + x2) / 2, (y1 + y2) / 2, 'X', tcod::ColorRGB(255, 0, 0)));
+        int nbMonsters = rng -> getInt(0, MAX_ROOM_MONSTERS);
+        while (nbMonsters > 0) {
+            int x = rng -> getInt(x1, x2);
+            int y = rng -> getInt(y1, y2);
+            if ( canWalk(x, y) ) {
+                addMonster(x, y);
+                nbMonsters--;
+            }
         }
+    }
+}
+
+void Map::addMonster(int x, int y) {
+    TCODRandom *rng = TCODRandom::getInstance();
+    if (rng->getInt(0, 100) < 80) {
+        //Create an orc 80% of the time
+        engine.actors.push_back(new Actor(x, y, 'o', "orc", TCODColor::desaturatedGreen));
+    } else {
+        //Create a troll 20% of the time
+        engine.actors.push_back(new Actor(x, y, 'T', "troll", TCODColor::darkerGreen));
     }
 }
 

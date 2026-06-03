@@ -13,6 +13,7 @@ class Map {
         Map(int width, int height);
         ~Map();
         bool isWall(int x, int y) const;
+        bool canWalk(int x, int y) const;
         // console is the tile buffer passed down from Engine::render()
         bool isInFov(int x, int y) const;
         bool isExplored(int x, int y) const;
@@ -25,4 +26,5 @@ class Map {
 
         void dig(int x1, int y1, int x2, int y2);
         void createRoom(bool first, int x1, int y1, int x2, int y2);
+        void addMonster(int x, int y);
 };

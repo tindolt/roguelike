@@ -9,6 +9,14 @@ class Map;
 
 class Engine {
 public:
+    enum GameStatus {
+        STARTUP,
+        IDLE,
+        NEW_TURN,
+        VICTORY,
+        DEFEAT
+    } gameStatus;
+    
     std::vector<Actor*> actors;
     Actor* player;
     Map* map;
